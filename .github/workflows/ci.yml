@@ -24,7 +24,7 @@ jobs:
         run: go vet ./...
 
       - name: Test
-        run: go test ./... -count=1 -short
+        run: go test $(go list ./... | grep -v "_test$") -count=1
 
       - name: Build
         run: go build ./...

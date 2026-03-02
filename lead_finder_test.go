@@ -2981,7 +2981,7 @@ func TestSettersMarkExplicitLeadFinderDeletedResponseMeta(t *testing.T) {
 func TestSettersLeadFinderFilterOptionsResponse(t *testing.T) {
 	t.Run("SetData", func(t *testing.T) {
 		obj := &LeadFinderFilterOptionsResponse{}
-		var fernTestValueData map[string][]string
+		var fernTestValueData map[string]*LeadFinderFilterOption
 		obj.SetData(fernTestValueData)
 		assert.Equal(t, fernTestValueData, obj.Data)
 		assert.NotNil(t, obj.explicitFields)
@@ -3002,7 +3002,7 @@ func TestGettersLeadFinderFilterOptionsResponse(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &LeadFinderFilterOptionsResponse{}
-		var expected map[string][]string
+		var expected map[string]*LeadFinderFilterOption
 		obj.Data = expected
 
 		// Act & Assert
@@ -3071,7 +3071,7 @@ func TestSettersMarkExplicitLeadFinderFilterOptionsResponse(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &LeadFinderFilterOptionsResponse{}
-		var fernTestValueData map[string][]string
+		var fernTestValueData map[string]*LeadFinderFilterOption
 
 		// Act
 		obj.SetData(fernTestValueData)
