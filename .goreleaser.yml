@@ -35,7 +35,7 @@ changelog:
 release:
   github:
     owner: maximiseai
-    repo: enrich-go-sdk
+    name: enrich-go-sdk
   draft: false
   prerelease: auto
   name_template: "v{{.Version}}"
