@@ -1,0 +1,41 @@
+version: 2
+
+project_name: enrich-go-sdk
+
+before:
+  hooks:
+    - go mod tidy
+
+# This is a library — skip binary compilation
+builds:
+  - skip: true
+
+changelog:
+  use: conventional-commits
+  sort: desc
+  abbrev: -1
+  groups:
+    - title: "Features"
+      regexp: "^feat"
+      order: 0
+    - title: "Bug Fixes"
+      regexp: "^fix"
+      order: 1
+    - title: "Documentation"
+      regexp: "^docs"
+      order: 2
+    - title: Other
+      order: 999
+  filters:
+    exclude:
+      - "^chore(release)"
+      - "^ci"
+      - "^test"
+
+release:
+  github:
+    owner: maximiseai
+    name: enrich-go-sdk
+  draft: false
+  prerelease: auto
+  name_template: "v{{.Version}}"
