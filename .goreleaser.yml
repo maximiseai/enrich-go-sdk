@@ -11,7 +11,7 @@ builds:
   - skip: true
 
 changelog:
-  use: conventional-commits
+  use: git
   sort: desc
   abbrev: -1
   groups:
@@ -28,14 +28,14 @@ changelog:
       order: 999
   filters:
     exclude:
-      - "^chore(release)"
+      - "^chore\\(release\\)"
       - "^ci"
       - "^test"
 
 release:
   github:
     owner: maximiseai
-    name: enrich-go-sdk
+    repo: enrich-go-sdk
   draft: false
   prerelease: auto
   name_template: "v{{.Version}}"
