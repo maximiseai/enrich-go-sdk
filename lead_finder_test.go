@@ -734,22 +734,6 @@ func TestSettersLeadSearchRequest(t *testing.T) {
 		assert.NotNil(t, obj.explicitFields)
 	})
 
-	t.Run("SetSortBy", func(t *testing.T) {
-		obj := &LeadSearchRequest{}
-		var fernTestValueSortBy *string
-		obj.SetSortBy(fernTestValueSortBy)
-		assert.Equal(t, fernTestValueSortBy, obj.SortBy)
-		assert.NotNil(t, obj.explicitFields)
-	})
-
-	t.Run("SetSortOrder", func(t *testing.T) {
-		obj := &LeadSearchRequest{}
-		var fernTestValueSortOrder *LeadSearchRequestSortOrder
-		obj.SetSortOrder(fernTestValueSortOrder)
-		assert.Equal(t, fernTestValueSortOrder, obj.SortOrder)
-		assert.NotNil(t, obj.explicitFields)
-	})
-
 }
 
 func TestSettersMarkExplicitLeadSearchRequest(t *testing.T) {
@@ -823,68 +807,6 @@ func TestSettersMarkExplicitLeadSearchRequest(t *testing.T) {
 
 		// Act
 		obj.SetPageSize(fernTestValuePageSize)
-
-		// Assert - object with explicitly set field can be marshaled/unmarshaled
-		bytes, err := json.Marshal(obj)
-		require.NoError(t, err, "marshaling should succeed for test setup")
-
-		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
-		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
-		if len(bytes) > 0 && bytes[0] == '{' {
-			// JSON object - unmarshal into map
-			var unmarshaled map[string]interface{}
-			err = json.Unmarshal(bytes, &unmarshaled)
-			require.NoError(t, err, "unmarshaling should succeed for test verification")
-		} else {
-			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
-			var unmarshaled interface{}
-			err = json.Unmarshal(bytes, &unmarshaled)
-			require.NoError(t, err, "unmarshaling should succeed for test verification")
-		}
-
-		// Note: This does not explicitly assert the presence of a specific JSON field
-		// It verifies that setting a field via setter allows successful JSON round-trip
-	})
-
-	t.Run("SetSortBy_MarksExplicit", func(t *testing.T) {
-		t.Parallel()
-		// Arrange
-		obj := &LeadSearchRequest{}
-		var fernTestValueSortBy *string
-
-		// Act
-		obj.SetSortBy(fernTestValueSortBy)
-
-		// Assert - object with explicitly set field can be marshaled/unmarshaled
-		bytes, err := json.Marshal(obj)
-		require.NoError(t, err, "marshaling should succeed for test setup")
-
-		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
-		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
-		if len(bytes) > 0 && bytes[0] == '{' {
-			// JSON object - unmarshal into map
-			var unmarshaled map[string]interface{}
-			err = json.Unmarshal(bytes, &unmarshaled)
-			require.NoError(t, err, "unmarshaling should succeed for test verification")
-		} else {
-			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
-			var unmarshaled interface{}
-			err = json.Unmarshal(bytes, &unmarshaled)
-			require.NoError(t, err, "unmarshaling should succeed for test verification")
-		}
-
-		// Note: This does not explicitly assert the presence of a specific JSON field
-		// It verifies that setting a field via setter allows successful JSON round-trip
-	})
-
-	t.Run("SetSortOrder_MarksExplicit", func(t *testing.T) {
-		t.Parallel()
-		// Arrange
-		obj := &LeadSearchRequest{}
-		var fernTestValueSortOrder *LeadSearchRequestSortOrder
-
-		// Act
-		obj.SetSortOrder(fernTestValueSortOrder)
 
 		// Assert - object with explicitly set field can be marshaled/unmarshaled
 		bytes, err := json.Marshal(obj)
@@ -20839,35 +20761,6 @@ func TestEnumLeadRevealRequestFieldsItem(t *testing.T) {
 
 	t.Run("Ptr", func(t *testing.T) {
 		val, err := NewLeadRevealRequestFieldsItemFromString("email")
-		assert.NoError(t, err)
-		ptr := val.Ptr()
-		assert.NotNil(t, ptr)
-		assert.Equal(t, val, *ptr)
-	})
-}
-
-func TestEnumLeadSearchRequestSortOrder(t *testing.T) {
-	t.Run("NewFromString_asc", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewLeadSearchRequestSortOrderFromString("asc")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, LeadSearchRequestSortOrder("asc"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_desc", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewLeadSearchRequestSortOrderFromString("desc")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, LeadSearchRequestSortOrder("desc"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_Invalid", func(t *testing.T) {
-		_, err := NewLeadSearchRequestSortOrderFromString("invalid_value_that_does_not_exist")
-		assert.Error(t, err)
-	})
-
-	t.Run("Ptr", func(t *testing.T) {
-		val, err := NewLeadSearchRequestSortOrderFromString("asc")
 		assert.NoError(t, err)
 		ptr := val.Ptr()
 		assert.NotNil(t, ptr)
