@@ -164,7 +164,7 @@ func (r *RawClient) RevealLeads(
 	ctx context.Context,
 	request *sdk.LeadRevealRequest,
 	opts ...option.RequestOption,
-) (*core.Response[*sdk.LeadRevealResponse], error) {
+) (*core.Response[*sdk.RevealJobSubmitResponse], error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -177,7 +177,7 @@ func (r *RawClient) RevealLeads(
 		options.ToHeader(),
 	)
 	headers.Add("Content-Type", "application/json")
-	var response *sdk.LeadRevealResponse
+	var response *sdk.RevealJobSubmitResponse
 	raw, err := r.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -196,7 +196,7 @@ func (r *RawClient) RevealLeads(
 	if err != nil {
 		return nil, err
 	}
-	return &core.Response[*sdk.LeadRevealResponse]{
+	return &core.Response[*sdk.RevealJobSubmitResponse]{
 		StatusCode: raw.StatusCode,
 		Header:     raw.Header,
 		Body:       response,
@@ -207,7 +207,7 @@ func (r *RawClient) EnrichLeads(
 	ctx context.Context,
 	request *sdk.LeadEnrichRequest,
 	opts ...option.RequestOption,
-) (*core.Response[*sdk.LeadEnrichResponse], error) {
+) (*core.Response[*sdk.RevealJobSubmitResponse], error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -220,7 +220,7 @@ func (r *RawClient) EnrichLeads(
 		options.ToHeader(),
 	)
 	headers.Add("Content-Type", "application/json")
-	var response *sdk.LeadEnrichResponse
+	var response *sdk.RevealJobSubmitResponse
 	raw, err := r.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -239,7 +239,99 @@ func (r *RawClient) EnrichLeads(
 	if err != nil {
 		return nil, err
 	}
-	return &core.Response[*sdk.LeadEnrichResponse]{
+	return &core.Response[*sdk.RevealJobSubmitResponse]{
+		StatusCode: raw.StatusCode,
+		Header:     raw.Header,
+		Body:       response,
+	}, nil
+}
+
+func (r *RawClient) GetRevealJob(
+	ctx context.Context,
+	jobID string,
+	opts ...option.RequestOption,
+) (*core.Response[*sdk.RevealJobPollResponse], error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		r.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/lead-finder/reveal-jobs/%v",
+		jobID,
+	)
+	headers := internal.MergeHeaders(
+		r.options.ToHeader(),
+		options.ToHeader(),
+	)
+	var response *sdk.RevealJobPollResponse
+	raw, err := r.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+			ErrorDecoder:    internal.NewErrorDecoder(sdk.ErrorCodes),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &core.Response[*sdk.RevealJobPollResponse]{
+		StatusCode: raw.StatusCode,
+		Header:     raw.Header,
+		Body:       response,
+	}, nil
+}
+
+func (r *RawClient) ListRevealJobs(
+	ctx context.Context,
+	request *sdk.ListRevealJobsRequest,
+	opts ...option.RequestOption,
+) (*core.Response[*sdk.RevealJobListResponse], error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		r.baseURL,
+		"",
+	)
+	endpointURL := baseURL + "/lead-finder/reveal-jobs"
+	queryParams, err := internal.QueryValues(request)
+	if err != nil {
+		return nil, err
+	}
+	if len(queryParams) > 0 {
+		endpointURL += "?" + queryParams.Encode()
+	}
+	headers := internal.MergeHeaders(
+		r.options.ToHeader(),
+		options.ToHeader(),
+	)
+	var response *sdk.RevealJobListResponse
+	raw, err := r.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+			ErrorDecoder:    internal.NewErrorDecoder(sdk.ErrorCodes),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &core.Response[*sdk.RevealJobListResponse]{
 		StatusCode: raw.StatusCode,
 		Header:     raw.Header,
 		Body:       response,

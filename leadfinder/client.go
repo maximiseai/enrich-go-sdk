@@ -110,20 +110,24 @@ func (c *Client) ExportLeads(
 	return response.Body, nil
 }
 
-// Reveal contact info for up to 25 leads. Choose which fields to reveal via the optional `fields` parameter:
+// Submit a reveal job for up to 25 leads. This endpoint is now async — it returns a job ticket immediately.
+// Poll with GetRevealJob to get results when the job completes.
+//
+// Choose which fields to reveal via the optional `fields` parameter:
 //
 // - `["email"]` — 50 credits per lead
 // - `["phone"]` — 525 credits per lead
 // - `["email", "phone"]` — 575 credits per lead (default if omitted)
 //
-// Previously revealed contacts are returned from cache at no cost. Returns 402 if insufficient credits.
+// Previously revealed contacts are returned from cache at no cost.
+// Credits are charged asynchronously — insufficient credits will surface as a failed job.
 //
 // **Requires approved Lead Finder access.** Returns 403 if your team has not been approved.
 func (c *Client) RevealLeads(
 	ctx context.Context,
 	request *sdk.LeadRevealRequest,
 	opts ...option.RequestOption,
-) (*sdk.LeadRevealResponse, error) {
+) (*sdk.RevealJobSubmitResponse, error) {
 	response, err := c.WithRawResponse.RevealLeads(
 		ctx,
 		request,
@@ -135,21 +139,59 @@ func (c *Client) RevealLeads(
 	return response.Body, nil
 }
 
-// Reveal specific contact fields (email and/or phone) for up to 25 leads.
+// Submit an enrich job for up to 25 leads. This endpoint is now async — it returns a job ticket immediately.
+// Poll with GetRevealJob to get results when the job completes.
 //
 // **Pricing:**
 // - Email: 50 credits per lead
 // - Phone: 525 credits per lead
 //
 // Previously revealed fields are returned from cache at no cost.
+// Credits are charged asynchronously — insufficient credits will surface as a failed job.
 //
 // **Requires approved Lead Finder access.** Returns 403 if your team has not been approved.
 func (c *Client) EnrichLeads(
 	ctx context.Context,
 	request *sdk.LeadEnrichRequest,
 	opts ...option.RequestOption,
-) (*sdk.LeadEnrichResponse, error) {
+) (*sdk.RevealJobSubmitResponse, error) {
 	response, err := c.WithRawResponse.EnrichLeads(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Poll a single reveal/enrich job until complete. Returns the job status, progress, and results (when completed).
+//
+// Returns 404 if the job is not found or belongs to a different team.
+func (c *Client) GetRevealJob(
+	ctx context.Context,
+	jobID string,
+	opts ...option.RequestOption,
+) (*sdk.RevealJobPollResponse, error) {
+	response, err := c.WithRawResponse.GetRevealJob(
+		ctx,
+		jobID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// List recent reveal/enrich jobs for the team (last 30 days). Supports pagination and status filtering.
+func (c *Client) ListRevealJobs(
+	ctx context.Context,
+	request *sdk.ListRevealJobsRequest,
+	opts ...option.RequestOption,
+) (*sdk.RevealJobListResponse, error) {
+	response, err := c.WithRawResponse.ListRevealJobs(
 		ctx,
 		request,
 		opts...,
