@@ -87,8 +87,10 @@ Every API call costs credits. You are **not charged** when a lookup fails (e.g. 
 | Reverse Email Lookup | `GetBulkLookupResults` | Free |
 | Lead Finder | `Search` | Free (preview) |
 | Lead Finder | `Count` | Free |
-| Lead Finder | `Reveal` | Credits per lead |
-| Lead Finder | `Enrich` | Credits per lead |
+| Lead Finder | `RevealLeads` | Credits per lead |
+| Lead Finder | `EnrichLeads` | Credits per lead |
+| Lead Finder | `GetRevealJob` | Free |
+| Lead Finder | `ListRevealJobs` | Free |
 | Lead Finder | `UnlockNames` | Credits per lead |
 | Lead Finder | `Export` | Credits per lead |
 | Lead Finder | `GetFilterOptions` | Free |
@@ -236,17 +238,42 @@ count, err := c.LeadFinder.Count(ctx, &sdk.LeadCountRequest{
 	JobTitle: []string{"CTO"},
 })
 
-// Reveal lead contact details
-revealed, err := c.LeadFinder.Reveal(ctx, &sdk.LeadRevealRequest{
-	Leads: []*sdk.LeadRevealItem{
-		{Id: "lead_123"},
-	},
+// Submit a reveal job (async — returns a job ticket immediately)
+job, err := c.LeadFinder.RevealLeads(ctx, &sdk.LeadRevealRequest{
+	Leads: []*sdk.LeadRevealItem{{Id: "lead_123"}},
 })
+jobID := job.Data.JobID
 
-// Enrich leads
-enriched, err := c.LeadFinder.Enrich(ctx, &sdk.LeadEnrichRequest{
+// Submit an enrich job (async — returns a job ticket immediately)
+job, err = c.LeadFinder.EnrichLeads(ctx, &sdk.LeadEnrichRequest{
 	Leads:  []*sdk.LeadRevealItem{{Id: "lead_123"}},
 	Fields: []string{"email"},
+})
+
+// Poll a reveal/enrich job
+poll, err := c.LeadFinder.GetRevealJob(ctx, jobID)
+// poll.Data.Status: "pending" | "processing" | "completed" | "failed"
+// poll.Data.Results available when status == "completed"
+
+// Polling pattern
+for {
+	poll, err := c.LeadFinder.GetRevealJob(ctx, jobID)
+	if err != nil {
+		panic(err)
+	}
+	switch poll.Data.Status {
+	case "completed":
+		fmt.Println(poll.Data.Results.Revealed)
+		return
+	case "failed":
+		panic(*poll.Data.Error)
+	}
+	time.Sleep(2 * time.Second)
+}
+
+// List recent reveal/enrich jobs
+jobs, err := c.LeadFinder.ListRevealJobs(ctx, &sdk.ListRevealJobsRequest{
+	Status: "completed",
 })
 
 // List saved searches
