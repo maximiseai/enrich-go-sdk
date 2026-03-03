@@ -382,8 +382,6 @@ var (
 	leadSearchRequestFieldFilters   = big.NewInt(1 << 0)
 	leadSearchRequestFieldPage      = big.NewInt(1 << 1)
 	leadSearchRequestFieldPageSize  = big.NewInt(1 << 2)
-	leadSearchRequestFieldSortBy    = big.NewInt(1 << 3)
-	leadSearchRequestFieldSortOrder = big.NewInt(1 << 4)
 )
 
 type LeadSearchRequest struct {
@@ -393,11 +391,6 @@ type LeadSearchRequest struct {
 	Page *int `json:"page,omitempty" url:"-"`
 	// Results per page (10–100)
 	PageSize *int `json:"pageSize,omitempty" url:"-"`
-	// Sort field. "none" = primary key order (fastest). Other options include field names like "lastName", "companyName", etc.
-	SortBy *string `json:"sortBy,omitempty" url:"-"`
-	// Sort direction
-	SortOrder *LeadSearchRequestSortOrder `json:"sortOrder,omitempty" url:"-"`
-
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
 }
@@ -428,20 +421,6 @@ func (l *LeadSearchRequest) SetPage(page *int) {
 func (l *LeadSearchRequest) SetPageSize(pageSize *int) {
 	l.PageSize = pageSize
 	l.require(leadSearchRequestFieldPageSize)
-}
-
-// SetSortBy sets the SortBy field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (l *LeadSearchRequest) SetSortBy(sortBy *string) {
-	l.SortBy = sortBy
-	l.require(leadSearchRequestFieldSortBy)
-}
-
-// SetSortOrder sets the SortOrder field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (l *LeadSearchRequest) SetSortOrder(sortOrder *LeadSearchRequestSortOrder) {
-	l.SortOrder = sortOrder
-	l.require(leadSearchRequestFieldSortOrder)
 }
 
 func (l *LeadSearchRequest) UnmarshalJSON(data []byte) error {
@@ -8790,29 +8769,6 @@ func (l *LeadRevealRequestLeadsItem) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", l)
-}
-
-// Sort direction
-type LeadSearchRequestSortOrder string
-
-const (
-	LeadSearchRequestSortOrderAsc  LeadSearchRequestSortOrder = "asc"
-	LeadSearchRequestSortOrderDesc LeadSearchRequestSortOrder = "desc"
-)
-
-func NewLeadSearchRequestSortOrderFromString(s string) (LeadSearchRequestSortOrder, error) {
-	switch s {
-	case "asc":
-		return LeadSearchRequestSortOrderAsc, nil
-	case "desc":
-		return LeadSearchRequestSortOrderDesc, nil
-	}
-	var t LeadSearchRequestSortOrder
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (l LeadSearchRequestSortOrder) Ptr() *LeadSearchRequestSortOrder {
-	return &l
 }
 
 var (

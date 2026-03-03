@@ -98,10 +98,68 @@ func (c *Client) ExportLeads(
 	ctx context.Context,
 	request *sdk.LeadExportRequest,
 	opts ...option.RequestOption,
-) (string, error) {
+) (*sdk.AsyncExportResponse, error) {
 	response, err := c.WithRawResponse.ExportLeads(
 		ctx,
 		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// ListExportJobs lists recent CSV export jobs for the team (last 30 days).
+// Supports pagination and optional status filtering.
+// Requires approved Lead Finder access.
+func (c *Client) ListExportJobs(
+	ctx context.Context,
+	request *sdk.ListExportJobsRequest,
+	opts ...option.RequestOption,
+) (*sdk.LeadExportJobListResponse, error) {
+	response, err := c.WithRawResponse.ListExportJobs(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// GetExportJob polls the status of a CSV export job.
+// Status is one of: pending, processing, completed, failed.
+// Once completed, download via DownloadExportJob.
+// Requires approved Lead Finder access.
+func (c *Client) GetExportJob(
+	ctx context.Context,
+	jobID string,
+	opts ...option.RequestOption,
+) (*sdk.LeadExportJobStatusResponse, error) {
+	response, err := c.WithRawResponse.GetExportJob(
+		ctx,
+		jobID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// DownloadExportJob streams the completed CSV for an export job.
+// Returns an error if the job has not yet completed — poll GetExportJob first.
+// Requires approved Lead Finder access.
+func (c *Client) DownloadExportJob(
+	ctx context.Context,
+	jobID string,
+	opts ...option.RequestOption,
+) (string, error) {
+	response, err := c.WithRawResponse.DownloadExportJob(
+		ctx,
+		jobID,
 		opts...,
 	)
 	if err != nil {

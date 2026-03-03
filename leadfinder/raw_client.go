@@ -121,7 +121,7 @@ func (r *RawClient) ExportLeads(
 	ctx context.Context,
 	request *sdk.LeadExportRequest,
 	opts ...option.RequestOption,
-) (*core.Response[string], error) {
+) (*core.Response[*sdk.AsyncExportResponse], error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -134,7 +134,7 @@ func (r *RawClient) ExportLeads(
 		options.ToHeader(),
 	)
 	headers.Add("Content-Type", "application/json")
-	response := bytes.NewBuffer(nil)
+	var response *sdk.AsyncExportResponse
 	raw, err := r.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -146,6 +146,144 @@ func (r *RawClient) ExportLeads(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Request:         request,
+			Response:        &response,
+			ErrorDecoder:    internal.NewErrorDecoder(sdk.ErrorCodes),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &core.Response[*sdk.AsyncExportResponse]{
+		StatusCode: raw.StatusCode,
+		Header:     raw.Header,
+		Body:       response,
+	}, nil
+}
+
+// ListExportJobs lists recent CSV export jobs for the team (last 30 days).
+// Requires approved Lead Finder access.
+func (r *RawClient) ListExportJobs(
+	ctx context.Context,
+	request *sdk.ListExportJobsRequest,
+	opts ...option.RequestOption,
+) (*core.Response[*sdk.LeadExportJobListResponse], error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		r.baseURL,
+		"",
+	)
+	endpointURL := baseURL + "/lead-finder/export-jobs"
+	queryParams, err := internal.QueryValues(request)
+	if err != nil {
+		return nil, err
+	}
+	if len(queryParams) > 0 {
+		endpointURL += "?" + queryParams.Encode()
+	}
+	headers := internal.MergeHeaders(
+		r.options.ToHeader(),
+		options.ToHeader(),
+	)
+	var response *sdk.LeadExportJobListResponse
+	raw, err := r.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+			ErrorDecoder:    internal.NewErrorDecoder(sdk.ErrorCodes),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &core.Response[*sdk.LeadExportJobListResponse]{
+		StatusCode: raw.StatusCode,
+		Header:     raw.Header,
+		Body:       response,
+	}, nil
+}
+
+// GetExportJob polls the status of a CSV export job.
+// Status is one of: pending, processing, completed, failed.
+// Requires approved Lead Finder access.
+func (r *RawClient) GetExportJob(
+	ctx context.Context,
+	jobID string,
+	opts ...option.RequestOption,
+) (*core.Response[*sdk.LeadExportJobStatusResponse], error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		r.baseURL,
+		"",
+	)
+	endpointURL := baseURL + "/lead-finder/export-jobs/" + jobID
+	headers := internal.MergeHeaders(
+		r.options.ToHeader(),
+		options.ToHeader(),
+	)
+	var response *sdk.LeadExportJobStatusResponse
+	raw, err := r.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+			ErrorDecoder:    internal.NewErrorDecoder(sdk.ErrorCodes),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &core.Response[*sdk.LeadExportJobStatusResponse]{
+		StatusCode: raw.StatusCode,
+		Header:     raw.Header,
+		Body:       response,
+	}, nil
+}
+
+// DownloadExportJob streams the completed CSV file for an export job.
+// Returns 409 Conflict if the job has not yet completed — poll GetExportJob first.
+// Requires approved Lead Finder access.
+func (r *RawClient) DownloadExportJob(
+	ctx context.Context,
+	jobID string,
+	opts ...option.RequestOption,
+) (*core.Response[string], error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		r.baseURL,
+		"",
+	)
+	endpointURL := baseURL + "/lead-finder/export-jobs/" + jobID + "/download"
+	headers := internal.MergeHeaders(
+		r.options.ToHeader(),
+		options.ToHeader(),
+	)
+	response := bytes.NewBuffer(nil)
+	raw, err := r.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
 			Response:        response,
 			ErrorDecoder:    internal.NewErrorDecoder(sdk.ErrorCodes),
 		},
