@@ -11,11 +11,14 @@ import (
 )
 
 var (
-	leadCountRequestFieldFilters = big.NewInt(1 << 0)
+	leadCountRequestFieldFilters        = big.NewInt(1 << 0)
+	leadCountRequestFieldExcludeFilters = big.NewInt(1 << 1)
 )
 
 type LeadCountRequest struct {
 	Filters *LeadFinderSearchFilters `json:"filters" url:"-"`
+	// Exclusion filters — drop matching results from the count. Only personHeadline, companyHeadline, aboutUs, domain, and jobTitle are supported.
+	ExcludeFilters *LeadFinderExcludeFilters `json:"excludeFilters,omitempty" url:"-"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -33,6 +36,13 @@ func (l *LeadCountRequest) require(field *big.Int) {
 func (l *LeadCountRequest) SetFilters(filters *LeadFinderSearchFilters) {
 	l.Filters = filters
 	l.require(leadCountRequestFieldFilters)
+}
+
+// SetExcludeFilters sets the ExcludeFilters field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LeadCountRequest) SetExcludeFilters(excludeFilters *LeadFinderExcludeFilters) {
+	l.ExcludeFilters = excludeFilters
+	l.require(leadCountRequestFieldExcludeFilters)
 }
 
 func (l *LeadCountRequest) UnmarshalJSON(data []byte) error {
@@ -197,18 +207,24 @@ func (l *LeadEnrichRequest) MarshalJSON() ([]byte, error) {
 
 var (
 	leadExportRequestFieldFilters            = big.NewInt(1 << 0)
-	leadExportRequestFieldMaxResults         = big.NewInt(1 << 1)
-	leadExportRequestFieldIncludeContactInfo = big.NewInt(1 << 2)
-	leadExportRequestFieldIncludeEmail       = big.NewInt(1 << 3)
-	leadExportRequestFieldIncludePhone       = big.NewInt(1 << 4)
-	leadExportRequestFieldIncludeNames       = big.NewInt(1 << 5)
-	leadExportRequestFieldLeadIDs            = big.NewInt(1 << 6)
-	leadExportRequestFieldPage               = big.NewInt(1 << 7)
-	leadExportRequestFieldPageSize           = big.NewInt(1 << 8)
+	leadExportRequestFieldExcludeFilters     = big.NewInt(1 << 1)
+	leadExportRequestFieldName               = big.NewInt(1 << 2)
+	leadExportRequestFieldMaxResults         = big.NewInt(1 << 3)
+	leadExportRequestFieldIncludeContactInfo = big.NewInt(1 << 4)
+	leadExportRequestFieldIncludeEmail       = big.NewInt(1 << 5)
+	leadExportRequestFieldIncludePhone       = big.NewInt(1 << 6)
+	leadExportRequestFieldIncludeNames       = big.NewInt(1 << 7)
+	leadExportRequestFieldLeadIDs            = big.NewInt(1 << 8)
+	leadExportRequestFieldPage               = big.NewInt(1 << 9)
+	leadExportRequestFieldPageSize           = big.NewInt(1 << 10)
 )
 
 type LeadExportRequest struct {
 	Filters *LeadFinderSearchFilters `json:"filters" url:"-"`
+	// Exclusion filters — drop matching results from the export. Only personHeadline, companyHeadline, aboutUs, domain, and jobTitle are supported.
+	ExcludeFilters *LeadFinderExcludeFilters `json:"excludeFilters,omitempty" url:"-"`
+	// Display name for the export (shown in export history, max 200 chars)
+	Name *string `json:"name,omitempty" url:"-"`
 	// Maximum rows to export
 	MaxResults *int `json:"maxResults,omitempty" url:"-"`
 	// Shorthand: include both email and phone (costs credits per lead)
@@ -242,6 +258,20 @@ func (l *LeadExportRequest) require(field *big.Int) {
 func (l *LeadExportRequest) SetFilters(filters *LeadFinderSearchFilters) {
 	l.Filters = filters
 	l.require(leadExportRequestFieldFilters)
+}
+
+// SetExcludeFilters sets the ExcludeFilters field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LeadExportRequest) SetExcludeFilters(excludeFilters *LeadFinderExcludeFilters) {
+	l.ExcludeFilters = excludeFilters
+	l.require(leadExportRequestFieldExcludeFilters)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LeadExportRequest) SetName(name *string) {
+	l.Name = name
+	l.require(leadExportRequestFieldName)
 }
 
 // SetMaxResults sets the MaxResults field and marks it as non-optional;
@@ -379,14 +409,17 @@ func (l *LeadRevealRequest) MarshalJSON() ([]byte, error) {
 }
 
 var (
-	leadSearchRequestFieldFilters   = big.NewInt(1 << 0)
-	leadSearchRequestFieldPage      = big.NewInt(1 << 1)
-	leadSearchRequestFieldPageSize  = big.NewInt(1 << 2)
+	leadSearchRequestFieldFilters        = big.NewInt(1 << 0)
+	leadSearchRequestFieldExcludeFilters = big.NewInt(1 << 1)
+	leadSearchRequestFieldPage           = big.NewInt(1 << 2)
+	leadSearchRequestFieldPageSize       = big.NewInt(1 << 3)
 )
 
 type LeadSearchRequest struct {
 	// Search filters
 	Filters *LeadFinderSearchFilters `json:"filters" url:"-"`
+	// Exclusion filters — drop matching results from the response. Only personHeadline, companyHeadline, aboutUs, domain, and jobTitle are supported.
+	ExcludeFilters *LeadFinderExcludeFilters `json:"excludeFilters,omitempty" url:"-"`
 	// Page number (1–40). Pages 1–3 are free.
 	Page *int `json:"page,omitempty" url:"-"`
 	// Results per page (10–100)
@@ -407,6 +440,13 @@ func (l *LeadSearchRequest) require(field *big.Int) {
 func (l *LeadSearchRequest) SetFilters(filters *LeadFinderSearchFilters) {
 	l.Filters = filters
 	l.require(leadSearchRequestFieldFilters)
+}
+
+// SetExcludeFilters sets the ExcludeFilters field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LeadSearchRequest) SetExcludeFilters(excludeFilters *LeadFinderExcludeFilters) {
+	l.ExcludeFilters = excludeFilters
+	l.require(leadSearchRequestFieldExcludeFilters)
 }
 
 // SetPage sets the Page field and marks it as non-optional;
@@ -478,6 +518,75 @@ func (s *SuggestCompanyNamesRequest) SetQ(q string) {
 func (s *SuggestCompanyNamesRequest) SetLimit(limit *int) {
 	s.Limit = limit
 	s.require(suggestCompanyNamesRequestFieldLimit)
+}
+
+var (
+	suggestCitiesRequestFieldQ     = big.NewInt(1 << 0)
+	suggestCitiesRequestFieldLimit = big.NewInt(1 << 1)
+	suggestCitiesRequestFieldField = big.NewInt(1 << 2)
+)
+
+type SuggestCitiesRequest struct {
+	// Search prefix (min 2 characters)
+	Q string `json:"-" url:"q"`
+	// Max suggestions (1–50, default: 20)
+	Limit *int `json:"-" url:"limit,omitempty"`
+	// Which city field to search (default: "city"). Use "headquartersCity" for company HQ city suggestions.
+	Field *SuggestCitiesRequestField `json:"-" url:"field,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (s *SuggestCitiesRequest) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetQ sets the Q field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SuggestCitiesRequest) SetQ(q string) {
+	s.Q = q
+	s.require(suggestCitiesRequestFieldQ)
+}
+
+// SetLimit sets the Limit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SuggestCitiesRequest) SetLimit(limit *int) {
+	s.Limit = limit
+	s.require(suggestCitiesRequestFieldLimit)
+}
+
+// SetField sets the Field field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SuggestCitiesRequest) SetField(field *SuggestCitiesRequestField) {
+	s.Field = field
+	s.require(suggestCitiesRequestFieldField)
+}
+
+// Which city field to search.
+type SuggestCitiesRequestField string
+
+const (
+	SuggestCitiesRequestFieldCity             SuggestCitiesRequestField = "city"
+	SuggestCitiesRequestFieldHeadquartersCity SuggestCitiesRequestField = "headquartersCity"
+)
+
+func NewSuggestCitiesRequestFieldFromString(s string) (SuggestCitiesRequestField, error) {
+	switch s {
+	case "city":
+		return SuggestCitiesRequestFieldCity, nil
+	case "headquartersCity":
+		return SuggestCitiesRequestFieldHeadquartersCity, nil
+	}
+	var t SuggestCitiesRequestField
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SuggestCitiesRequestField) Ptr() *SuggestCitiesRequestField {
+	return &s
 }
 
 var (
@@ -1588,6 +1697,9 @@ var (
 	leadFinderSearchFiltersFieldLastFundingTypeOrg                     = big.NewInt(0).Lsh(big.NewInt(1), 132)
 	leadFinderSearchFiltersFieldFundingRoundNumberOfInvestorsOrg       = big.NewInt(0).Lsh(big.NewInt(1), 133)
 	leadFinderSearchFiltersFieldTotalFundingAmountOrg                  = big.NewInt(0).Lsh(big.NewInt(1), 134)
+	leadFinderSearchFiltersFieldPersonHeadline                         = big.NewInt(0).Lsh(big.NewInt(1), 135)
+	leadFinderSearchFiltersFieldCompanyHeadline                        = big.NewInt(0).Lsh(big.NewInt(1), 136)
+	leadFinderSearchFiltersFieldRevenueBuckets                         = big.NewInt(0).Lsh(big.NewInt(1), 137)
 )
 
 type LeadFinderSearchFilters struct {
@@ -1613,8 +1725,12 @@ type LeadFinderSearchFilters struct {
 	CountryRegion *LeadFinderSearchFiltersCountryRegion `json:"countryRegion,omitempty" url:"countryRegion,omitempty"`
 	// LinkedIn profile URL (exact match)
 	LinkedinURL *string `json:"linkedinUrl,omitempty" url:"linkedinUrl,omitempty"`
-	// LinkedIn headline (exact match)
+	// Deprecated: use PersonHeadline instead. LinkedIn headline (exact match)
 	LinkedinHeadline *string `json:"linkedinHeadline,omitempty" url:"linkedinHeadline,omitempty"`
+	// Person LinkedIn headline (keyword/contains match, multi-select, up to 10 values)
+	PersonHeadline *LeadFinderSearchFiltersPersonHeadline `json:"personHeadline,omitempty" url:"personHeadline,omitempty"`
+	// Company headline (keyword/contains match, multi-select, up to 10 values)
+	CompanyHeadline *LeadFinderSearchFiltersCompanyHeadline `json:"companyHeadline,omitempty" url:"companyHeadline,omitempty"`
 	// LinkedIn industry (exact match)
 	LinkedinIndustry *string `json:"linkedinIndustry,omitempty" url:"linkedinIndustry,omitempty"`
 	// Person logo URL (exact match)
@@ -1669,10 +1785,10 @@ type LeadFinderSearchFilters struct {
 	Cellphone *string `json:"cellphone,omitempty" url:"cellphone,omitempty"`
 	// Organization name (exact match)
 	OrgName *string `json:"orgName,omitempty" url:"orgName,omitempty"`
-	// Company domain (multi-select, max 500)
+	// Company domain (multi-select, max 5000)
 	Domain *LeadFinderSearchFiltersDomain `json:"domain,omitempty" url:"domain,omitempty"`
-	// Company about us (exact match)
-	AboutUs *string `json:"aboutUs,omitempty" url:"aboutUs,omitempty"`
+	// Company overview/about us (keyword/contains match, multi-select, up to 10 values)
+	AboutUs *LeadFinderSearchFiltersAboutUs `json:"aboutUs,omitempty" url:"aboutUs,omitempty"`
 	// Company entity type (multi-select)
 	CompanyEntityType *LeadFinderSearchFiltersCompanyEntityType `json:"companyEntityType,omitempty" url:"companyEntityType,omitempty"`
 	// Company legal type (multi-select)
@@ -1707,10 +1823,12 @@ type LeadFinderSearchFilters struct {
 	LocationState *string `json:"locationState,omitempty" url:"locationState,omitempty"`
 	// Organization location country (multi-select)
 	LocationCountry *LeadFinderSearchFiltersLocationCountry `json:"locationCountry,omitempty" url:"locationCountry,omitempty"`
-	// Max revenue upper bound
+	// Deprecated: use RevenueBuckets instead. Max revenue upper bound
 	RevenueMax *float64 `json:"revenueMax,omitempty" url:"revenueMax,omitempty"`
-	// Min revenue lower bound
+	// Deprecated: use RevenueBuckets instead. Min revenue lower bound
 	RevenueMin *float64 `json:"revenueMin,omitempty" url:"revenueMin,omitempty"`
+	// Revenue range buckets (multi-select, e.g. ['<$1M', '$1M to <$10M'], max 6 values)
+	RevenueBuckets *LeadFinderSearchFiltersRevenueBuckets `json:"revenueBuckets,omitempty" url:"revenueBuckets,omitempty"`
 	// Company specialties (exact match)
 	Specialties *string `json:"specialties,omitempty" url:"specialties,omitempty"`
 	// CRM technology (multi-select)
@@ -2149,11 +2267,32 @@ func (l *LeadFinderSearchFilters) GetDomain() *LeadFinderSearchFiltersDomain {
 	return l.Domain
 }
 
-func (l *LeadFinderSearchFilters) GetAboutUs() *string {
+func (l *LeadFinderSearchFilters) GetAboutUs() *LeadFinderSearchFiltersAboutUs {
 	if l == nil {
 		return nil
 	}
 	return l.AboutUs
+}
+
+func (l *LeadFinderSearchFilters) GetPersonHeadline() *LeadFinderSearchFiltersPersonHeadline {
+	if l == nil {
+		return nil
+	}
+	return l.PersonHeadline
+}
+
+func (l *LeadFinderSearchFilters) GetCompanyHeadline() *LeadFinderSearchFiltersCompanyHeadline {
+	if l == nil {
+		return nil
+	}
+	return l.CompanyHeadline
+}
+
+func (l *LeadFinderSearchFilters) GetRevenueBuckets() *LeadFinderSearchFiltersRevenueBuckets {
+	if l == nil {
+		return nil
+	}
+	return l.RevenueBuckets
 }
 
 func (l *LeadFinderSearchFilters) GetCompanyEntityType() *LeadFinderSearchFiltersCompanyEntityType {
@@ -3110,9 +3249,30 @@ func (l *LeadFinderSearchFilters) SetDomain(domain *LeadFinderSearchFiltersDomai
 
 // SetAboutUs sets the AboutUs field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (l *LeadFinderSearchFilters) SetAboutUs(aboutUs *string) {
+func (l *LeadFinderSearchFilters) SetAboutUs(aboutUs *LeadFinderSearchFiltersAboutUs) {
 	l.AboutUs = aboutUs
 	l.require(leadFinderSearchFiltersFieldAboutUs)
+}
+
+// SetPersonHeadline sets the PersonHeadline field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LeadFinderSearchFilters) SetPersonHeadline(personHeadline *LeadFinderSearchFiltersPersonHeadline) {
+	l.PersonHeadline = personHeadline
+	l.require(leadFinderSearchFiltersFieldPersonHeadline)
+}
+
+// SetCompanyHeadline sets the CompanyHeadline field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LeadFinderSearchFilters) SetCompanyHeadline(companyHeadline *LeadFinderSearchFiltersCompanyHeadline) {
+	l.CompanyHeadline = companyHeadline
+	l.require(leadFinderSearchFiltersFieldCompanyHeadline)
+}
+
+// SetRevenueBuckets sets the RevenueBuckets field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LeadFinderSearchFilters) SetRevenueBuckets(revenueBuckets *LeadFinderSearchFiltersRevenueBuckets) {
+	l.RevenueBuckets = revenueBuckets
+	l.require(leadFinderSearchFiltersFieldRevenueBuckets)
 }
 
 // SetCompanyEntityType sets the CompanyEntityType field and marks it as non-optional;
@@ -8901,4 +9061,1005 @@ func (u *UnlockNamesRequest) MarshalJSON() ([]byte, error) {
 	}
 	explicitMarshaler := internal.HandleExplicitFields(marshaler, u.explicitFields)
 	return json.Marshal(explicitMarshaler)
+}
+
+// Exclusion filters for lead finder search, count, and export. Restricted to a small set of
+// keyword-style fields: any record matching one of these values is removed from the result set.
+// All fields are optional and accept either a single string or an array of strings.
+type LeadFinderExcludeFilters struct {
+	// Person LinkedIn headline to exclude (keyword/contains match, up to 10 values)
+	PersonHeadline *LeadFinderExcludeFiltersPersonHeadline `json:"personHeadline,omitempty" url:"personHeadline,omitempty"`
+	// Company headline to exclude (keyword/contains match, up to 10 values)
+	CompanyHeadline *LeadFinderExcludeFiltersCompanyHeadline `json:"companyHeadline,omitempty" url:"companyHeadline,omitempty"`
+	// Company overview/about us to exclude (keyword/contains match, up to 10 values)
+	AboutUs *LeadFinderExcludeFiltersAboutUs `json:"aboutUs,omitempty" url:"aboutUs,omitempty"`
+	// Company domain to exclude (exact match, up to 5000 values)
+	Domain *LeadFinderExcludeFiltersDomain `json:"domain,omitempty" url:"domain,omitempty"`
+	// Job title to exclude (keyword/contains match, up to 25 values)
+	JobTitle *LeadFinderExcludeFiltersJobTitle `json:"jobTitle,omitempty" url:"jobTitle,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *LeadFinderExcludeFilters) GetPersonHeadline() *LeadFinderExcludeFiltersPersonHeadline {
+	if l == nil {
+		return nil
+	}
+	return l.PersonHeadline
+}
+
+func (l *LeadFinderExcludeFilters) GetCompanyHeadline() *LeadFinderExcludeFiltersCompanyHeadline {
+	if l == nil {
+		return nil
+	}
+	return l.CompanyHeadline
+}
+
+func (l *LeadFinderExcludeFilters) GetAboutUs() *LeadFinderExcludeFiltersAboutUs {
+	if l == nil {
+		return nil
+	}
+	return l.AboutUs
+}
+
+func (l *LeadFinderExcludeFilters) GetDomain() *LeadFinderExcludeFiltersDomain {
+	if l == nil {
+		return nil
+	}
+	return l.Domain
+}
+
+func (l *LeadFinderExcludeFilters) GetJobTitle() *LeadFinderExcludeFiltersJobTitle {
+	if l == nil {
+		return nil
+	}
+	return l.JobTitle
+}
+
+func (l *LeadFinderExcludeFilters) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
+	return l.extraProperties
+}
+
+func (l *LeadFinderExcludeFilters) UnmarshalJSON(data []byte) error {
+	type unmarshaler LeadFinderExcludeFilters
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*l = LeadFinderExcludeFilters(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *LeadFinderExcludeFilters) String() string {
+	if l == nil {
+		return "<nil>"
+	}
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
+// Person LinkedIn headline to exclude (keyword/contains match, up to 10 values)
+type LeadFinderExcludeFiltersPersonHeadline struct {
+	String     string
+	StringList []string
+
+	typ string
+}
+
+func (l *LeadFinderExcludeFiltersPersonHeadline) GetString() string {
+	if l == nil {
+		return ""
+	}
+	return l.String
+}
+
+func (l *LeadFinderExcludeFiltersPersonHeadline) GetStringList() []string {
+	if l == nil {
+		return nil
+	}
+	return l.StringList
+}
+
+func (l *LeadFinderExcludeFiltersPersonHeadline) UnmarshalJSON(data []byte) error {
+	var valueString string
+	if err := json.Unmarshal(data, &valueString); err == nil {
+		l.typ = "String"
+		l.String = valueString
+		return nil
+	}
+	var valueStringList []string
+	if err := json.Unmarshal(data, &valueStringList); err == nil {
+		l.typ = "StringList"
+		l.StringList = valueStringList
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, l)
+}
+
+func (l LeadFinderExcludeFiltersPersonHeadline) MarshalJSON() ([]byte, error) {
+	if l.typ == "String" || l.String != "" {
+		return json.Marshal(l.String)
+	}
+	if l.typ == "StringList" || l.StringList != nil {
+		return json.Marshal(l.StringList)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", l)
+}
+
+type LeadFinderExcludeFiltersPersonHeadlineVisitor interface {
+	VisitString(string) error
+	VisitStringList([]string) error
+}
+
+func (l *LeadFinderExcludeFiltersPersonHeadline) Accept(visitor LeadFinderExcludeFiltersPersonHeadlineVisitor) error {
+	if l.typ == "String" || l.String != "" {
+		return visitor.VisitString(l.String)
+	}
+	if l.typ == "StringList" || l.StringList != nil {
+		return visitor.VisitStringList(l.StringList)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", l)
+}
+
+// Company headline to exclude (keyword/contains match, up to 10 values)
+type LeadFinderExcludeFiltersCompanyHeadline struct {
+	String     string
+	StringList []string
+
+	typ string
+}
+
+func (l *LeadFinderExcludeFiltersCompanyHeadline) GetString() string {
+	if l == nil {
+		return ""
+	}
+	return l.String
+}
+
+func (l *LeadFinderExcludeFiltersCompanyHeadline) GetStringList() []string {
+	if l == nil {
+		return nil
+	}
+	return l.StringList
+}
+
+func (l *LeadFinderExcludeFiltersCompanyHeadline) UnmarshalJSON(data []byte) error {
+	var valueString string
+	if err := json.Unmarshal(data, &valueString); err == nil {
+		l.typ = "String"
+		l.String = valueString
+		return nil
+	}
+	var valueStringList []string
+	if err := json.Unmarshal(data, &valueStringList); err == nil {
+		l.typ = "StringList"
+		l.StringList = valueStringList
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, l)
+}
+
+func (l LeadFinderExcludeFiltersCompanyHeadline) MarshalJSON() ([]byte, error) {
+	if l.typ == "String" || l.String != "" {
+		return json.Marshal(l.String)
+	}
+	if l.typ == "StringList" || l.StringList != nil {
+		return json.Marshal(l.StringList)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", l)
+}
+
+type LeadFinderExcludeFiltersCompanyHeadlineVisitor interface {
+	VisitString(string) error
+	VisitStringList([]string) error
+}
+
+func (l *LeadFinderExcludeFiltersCompanyHeadline) Accept(visitor LeadFinderExcludeFiltersCompanyHeadlineVisitor) error {
+	if l.typ == "String" || l.String != "" {
+		return visitor.VisitString(l.String)
+	}
+	if l.typ == "StringList" || l.StringList != nil {
+		return visitor.VisitStringList(l.StringList)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", l)
+}
+
+// Company overview/about us to exclude (keyword/contains match, up to 10 values)
+type LeadFinderExcludeFiltersAboutUs struct {
+	String     string
+	StringList []string
+
+	typ string
+}
+
+func (l *LeadFinderExcludeFiltersAboutUs) GetString() string {
+	if l == nil {
+		return ""
+	}
+	return l.String
+}
+
+func (l *LeadFinderExcludeFiltersAboutUs) GetStringList() []string {
+	if l == nil {
+		return nil
+	}
+	return l.StringList
+}
+
+func (l *LeadFinderExcludeFiltersAboutUs) UnmarshalJSON(data []byte) error {
+	var valueString string
+	if err := json.Unmarshal(data, &valueString); err == nil {
+		l.typ = "String"
+		l.String = valueString
+		return nil
+	}
+	var valueStringList []string
+	if err := json.Unmarshal(data, &valueStringList); err == nil {
+		l.typ = "StringList"
+		l.StringList = valueStringList
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, l)
+}
+
+func (l LeadFinderExcludeFiltersAboutUs) MarshalJSON() ([]byte, error) {
+	if l.typ == "String" || l.String != "" {
+		return json.Marshal(l.String)
+	}
+	if l.typ == "StringList" || l.StringList != nil {
+		return json.Marshal(l.StringList)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", l)
+}
+
+type LeadFinderExcludeFiltersAboutUsVisitor interface {
+	VisitString(string) error
+	VisitStringList([]string) error
+}
+
+func (l *LeadFinderExcludeFiltersAboutUs) Accept(visitor LeadFinderExcludeFiltersAboutUsVisitor) error {
+	if l.typ == "String" || l.String != "" {
+		return visitor.VisitString(l.String)
+	}
+	if l.typ == "StringList" || l.StringList != nil {
+		return visitor.VisitStringList(l.StringList)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", l)
+}
+
+// Company domain to exclude (exact match, up to 5000 values)
+type LeadFinderExcludeFiltersDomain struct {
+	String     string
+	StringList []string
+
+	typ string
+}
+
+func (l *LeadFinderExcludeFiltersDomain) GetString() string {
+	if l == nil {
+		return ""
+	}
+	return l.String
+}
+
+func (l *LeadFinderExcludeFiltersDomain) GetStringList() []string {
+	if l == nil {
+		return nil
+	}
+	return l.StringList
+}
+
+func (l *LeadFinderExcludeFiltersDomain) UnmarshalJSON(data []byte) error {
+	var valueString string
+	if err := json.Unmarshal(data, &valueString); err == nil {
+		l.typ = "String"
+		l.String = valueString
+		return nil
+	}
+	var valueStringList []string
+	if err := json.Unmarshal(data, &valueStringList); err == nil {
+		l.typ = "StringList"
+		l.StringList = valueStringList
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, l)
+}
+
+func (l LeadFinderExcludeFiltersDomain) MarshalJSON() ([]byte, error) {
+	if l.typ == "String" || l.String != "" {
+		return json.Marshal(l.String)
+	}
+	if l.typ == "StringList" || l.StringList != nil {
+		return json.Marshal(l.StringList)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", l)
+}
+
+type LeadFinderExcludeFiltersDomainVisitor interface {
+	VisitString(string) error
+	VisitStringList([]string) error
+}
+
+func (l *LeadFinderExcludeFiltersDomain) Accept(visitor LeadFinderExcludeFiltersDomainVisitor) error {
+	if l.typ == "String" || l.String != "" {
+		return visitor.VisitString(l.String)
+	}
+	if l.typ == "StringList" || l.StringList != nil {
+		return visitor.VisitStringList(l.StringList)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", l)
+}
+
+// Job title to exclude (keyword/contains match, up to 25 values)
+type LeadFinderExcludeFiltersJobTitle struct {
+	String     string
+	StringList []string
+
+	typ string
+}
+
+func (l *LeadFinderExcludeFiltersJobTitle) GetString() string {
+	if l == nil {
+		return ""
+	}
+	return l.String
+}
+
+func (l *LeadFinderExcludeFiltersJobTitle) GetStringList() []string {
+	if l == nil {
+		return nil
+	}
+	return l.StringList
+}
+
+func (l *LeadFinderExcludeFiltersJobTitle) UnmarshalJSON(data []byte) error {
+	var valueString string
+	if err := json.Unmarshal(data, &valueString); err == nil {
+		l.typ = "String"
+		l.String = valueString
+		return nil
+	}
+	var valueStringList []string
+	if err := json.Unmarshal(data, &valueStringList); err == nil {
+		l.typ = "StringList"
+		l.StringList = valueStringList
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, l)
+}
+
+func (l LeadFinderExcludeFiltersJobTitle) MarshalJSON() ([]byte, error) {
+	if l.typ == "String" || l.String != "" {
+		return json.Marshal(l.String)
+	}
+	if l.typ == "StringList" || l.StringList != nil {
+		return json.Marshal(l.StringList)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", l)
+}
+
+type LeadFinderExcludeFiltersJobTitleVisitor interface {
+	VisitString(string) error
+	VisitStringList([]string) error
+}
+
+func (l *LeadFinderExcludeFiltersJobTitle) Accept(visitor LeadFinderExcludeFiltersJobTitleVisitor) error {
+	if l.typ == "String" || l.String != "" {
+		return visitor.VisitString(l.String)
+	}
+	if l.typ == "StringList" || l.StringList != nil {
+		return visitor.VisitStringList(l.StringList)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", l)
+}
+
+// Person LinkedIn headline (keyword/contains match, multi-select)
+type LeadFinderSearchFiltersPersonHeadline struct {
+	String     string
+	StringList []string
+
+	typ string
+}
+
+func (l *LeadFinderSearchFiltersPersonHeadline) GetString() string {
+	if l == nil {
+		return ""
+	}
+	return l.String
+}
+
+func (l *LeadFinderSearchFiltersPersonHeadline) GetStringList() []string {
+	if l == nil {
+		return nil
+	}
+	return l.StringList
+}
+
+func (l *LeadFinderSearchFiltersPersonHeadline) UnmarshalJSON(data []byte) error {
+	var valueString string
+	if err := json.Unmarshal(data, &valueString); err == nil {
+		l.typ = "String"
+		l.String = valueString
+		return nil
+	}
+	var valueStringList []string
+	if err := json.Unmarshal(data, &valueStringList); err == nil {
+		l.typ = "StringList"
+		l.StringList = valueStringList
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, l)
+}
+
+func (l LeadFinderSearchFiltersPersonHeadline) MarshalJSON() ([]byte, error) {
+	if l.typ == "String" || l.String != "" {
+		return json.Marshal(l.String)
+	}
+	if l.typ == "StringList" || l.StringList != nil {
+		return json.Marshal(l.StringList)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", l)
+}
+
+type LeadFinderSearchFiltersPersonHeadlineVisitor interface {
+	VisitString(string) error
+	VisitStringList([]string) error
+}
+
+func (l *LeadFinderSearchFiltersPersonHeadline) Accept(visitor LeadFinderSearchFiltersPersonHeadlineVisitor) error {
+	if l.typ == "String" || l.String != "" {
+		return visitor.VisitString(l.String)
+	}
+	if l.typ == "StringList" || l.StringList != nil {
+		return visitor.VisitStringList(l.StringList)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", l)
+}
+
+// Company headline (keyword/contains match, multi-select)
+type LeadFinderSearchFiltersCompanyHeadline struct {
+	String     string
+	StringList []string
+
+	typ string
+}
+
+func (l *LeadFinderSearchFiltersCompanyHeadline) GetString() string {
+	if l == nil {
+		return ""
+	}
+	return l.String
+}
+
+func (l *LeadFinderSearchFiltersCompanyHeadline) GetStringList() []string {
+	if l == nil {
+		return nil
+	}
+	return l.StringList
+}
+
+func (l *LeadFinderSearchFiltersCompanyHeadline) UnmarshalJSON(data []byte) error {
+	var valueString string
+	if err := json.Unmarshal(data, &valueString); err == nil {
+		l.typ = "String"
+		l.String = valueString
+		return nil
+	}
+	var valueStringList []string
+	if err := json.Unmarshal(data, &valueStringList); err == nil {
+		l.typ = "StringList"
+		l.StringList = valueStringList
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, l)
+}
+
+func (l LeadFinderSearchFiltersCompanyHeadline) MarshalJSON() ([]byte, error) {
+	if l.typ == "String" || l.String != "" {
+		return json.Marshal(l.String)
+	}
+	if l.typ == "StringList" || l.StringList != nil {
+		return json.Marshal(l.StringList)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", l)
+}
+
+type LeadFinderSearchFiltersCompanyHeadlineVisitor interface {
+	VisitString(string) error
+	VisitStringList([]string) error
+}
+
+func (l *LeadFinderSearchFiltersCompanyHeadline) Accept(visitor LeadFinderSearchFiltersCompanyHeadlineVisitor) error {
+	if l.typ == "String" || l.String != "" {
+		return visitor.VisitString(l.String)
+	}
+	if l.typ == "StringList" || l.StringList != nil {
+		return visitor.VisitStringList(l.StringList)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", l)
+}
+
+// Company overview/about us (keyword/contains match, multi-select)
+type LeadFinderSearchFiltersAboutUs struct {
+	String     string
+	StringList []string
+
+	typ string
+}
+
+func (l *LeadFinderSearchFiltersAboutUs) GetString() string {
+	if l == nil {
+		return ""
+	}
+	return l.String
+}
+
+func (l *LeadFinderSearchFiltersAboutUs) GetStringList() []string {
+	if l == nil {
+		return nil
+	}
+	return l.StringList
+}
+
+func (l *LeadFinderSearchFiltersAboutUs) UnmarshalJSON(data []byte) error {
+	var valueString string
+	if err := json.Unmarshal(data, &valueString); err == nil {
+		l.typ = "String"
+		l.String = valueString
+		return nil
+	}
+	var valueStringList []string
+	if err := json.Unmarshal(data, &valueStringList); err == nil {
+		l.typ = "StringList"
+		l.StringList = valueStringList
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, l)
+}
+
+func (l LeadFinderSearchFiltersAboutUs) MarshalJSON() ([]byte, error) {
+	if l.typ == "String" || l.String != "" {
+		return json.Marshal(l.String)
+	}
+	if l.typ == "StringList" || l.StringList != nil {
+		return json.Marshal(l.StringList)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", l)
+}
+
+type LeadFinderSearchFiltersAboutUsVisitor interface {
+	VisitString(string) error
+	VisitStringList([]string) error
+}
+
+func (l *LeadFinderSearchFiltersAboutUs) Accept(visitor LeadFinderSearchFiltersAboutUsVisitor) error {
+	if l.typ == "String" || l.String != "" {
+		return visitor.VisitString(l.String)
+	}
+	if l.typ == "StringList" || l.StringList != nil {
+		return visitor.VisitStringList(l.StringList)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", l)
+}
+
+// Revenue range buckets (multi-select, e.g. ['<$1M', '$1M to <$10M'])
+type LeadFinderSearchFiltersRevenueBuckets struct {
+	String     string
+	StringList []string
+
+	typ string
+}
+
+func (l *LeadFinderSearchFiltersRevenueBuckets) GetString() string {
+	if l == nil {
+		return ""
+	}
+	return l.String
+}
+
+func (l *LeadFinderSearchFiltersRevenueBuckets) GetStringList() []string {
+	if l == nil {
+		return nil
+	}
+	return l.StringList
+}
+
+func (l *LeadFinderSearchFiltersRevenueBuckets) UnmarshalJSON(data []byte) error {
+	var valueString string
+	if err := json.Unmarshal(data, &valueString); err == nil {
+		l.typ = "String"
+		l.String = valueString
+		return nil
+	}
+	var valueStringList []string
+	if err := json.Unmarshal(data, &valueStringList); err == nil {
+		l.typ = "StringList"
+		l.StringList = valueStringList
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, l)
+}
+
+func (l LeadFinderSearchFiltersRevenueBuckets) MarshalJSON() ([]byte, error) {
+	if l.typ == "String" || l.String != "" {
+		return json.Marshal(l.String)
+	}
+	if l.typ == "StringList" || l.StringList != nil {
+		return json.Marshal(l.StringList)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", l)
+}
+
+type LeadFinderSearchFiltersRevenueBucketsVisitor interface {
+	VisitString(string) error
+	VisitStringList([]string) error
+}
+
+func (l *LeadFinderSearchFiltersRevenueBuckets) Accept(visitor LeadFinderSearchFiltersRevenueBucketsVisitor) error {
+	if l.typ == "String" || l.String != "" {
+		return visitor.VisitString(l.String)
+	}
+	if l.typ == "StringList" || l.StringList != nil {
+		return visitor.VisitStringList(l.StringList)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", l)
+}
+
+// Org-specific credit costs for lead finder actions. Falls back to global defaults when no per-org override exists.
+type LeadFinderPricingResponse struct {
+	Data *LeadFinderPricingResponseData `json:"data" url:"data"`
+	Meta *LeadFinderPricingResponseMeta `json:"meta,omitempty" url:"meta,omitempty"`
+
+	success bool
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *LeadFinderPricingResponse) GetData() *LeadFinderPricingResponseData {
+	if l == nil {
+		return nil
+	}
+	return l.Data
+}
+
+func (l *LeadFinderPricingResponse) GetMeta() *LeadFinderPricingResponseMeta {
+	if l == nil {
+		return nil
+	}
+	return l.Meta
+}
+
+func (l *LeadFinderPricingResponse) Success() bool {
+	return l.success
+}
+
+func (l *LeadFinderPricingResponse) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
+	return l.extraProperties
+}
+
+func (l *LeadFinderPricingResponse) UnmarshalJSON(data []byte) error {
+	type embed LeadFinderPricingResponse
+	var unmarshaler = struct {
+		embed
+		Success bool `json:"success"`
+	}{
+		embed: embed(*l),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*l = LeadFinderPricingResponse(unmarshaler.embed)
+	if unmarshaler.Success != true {
+		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", l, true, unmarshaler.Success)
+	}
+	l.success = unmarshaler.Success
+	extraProperties, err := internal.ExtractExtraProperties(data, *l, "success")
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *LeadFinderPricingResponse) MarshalJSON() ([]byte, error) {
+	type embed LeadFinderPricingResponse
+	var marshaler = struct {
+		embed
+		Success bool `json:"success"`
+	}{
+		embed:   embed(*l),
+		Success: true,
+	}
+	return json.Marshal(marshaler)
+}
+
+func (l *LeadFinderPricingResponse) String() string {
+	if l == nil {
+		return "<nil>"
+	}
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
+type LeadFinderPricingResponseData struct {
+	Pricing *LeadFinderPricingResponsePricing `json:"pricing" url:"pricing"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *LeadFinderPricingResponseData) GetPricing() *LeadFinderPricingResponsePricing {
+	if l == nil {
+		return nil
+	}
+	return l.Pricing
+}
+
+func (l *LeadFinderPricingResponseData) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
+	return l.extraProperties
+}
+
+func (l *LeadFinderPricingResponseData) UnmarshalJSON(data []byte) error {
+	type unmarshaler LeadFinderPricingResponseData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*l = LeadFinderPricingResponseData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *LeadFinderPricingResponseData) String() string {
+	if l == nil {
+		return "<nil>"
+	}
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
+type LeadFinderPricingResponsePricing struct {
+	// Credits per row when exporting preview fields (no contact info)
+	ExportBase *LeadFinderPricingResponsePriceItem `json:"export_base" url:"export_base"`
+	// Credits per email included in an export
+	ExportEmail *LeadFinderPricingResponsePriceItem `json:"export_email" url:"export_email"`
+	// Credits per phone included in an export
+	ExportPhone *LeadFinderPricingResponsePriceItem `json:"export_phone" url:"export_phone"`
+	// Credits per email revealed via reveal/enrich
+	RevealEmail *LeadFinderPricingResponsePriceItem `json:"reveal_email" url:"reveal_email"`
+	// Credits per phone revealed via reveal/enrich
+	RevealPhone *LeadFinderPricingResponsePriceItem `json:"reveal_phone" url:"reveal_phone"`
+	// Credits per lead when unlocking full last names
+	UnlockName *LeadFinderPricingResponsePriceItem `json:"unlock_name" url:"unlock_name"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *LeadFinderPricingResponsePricing) GetExportBase() *LeadFinderPricingResponsePriceItem {
+	if l == nil {
+		return nil
+	}
+	return l.ExportBase
+}
+
+func (l *LeadFinderPricingResponsePricing) GetExportEmail() *LeadFinderPricingResponsePriceItem {
+	if l == nil {
+		return nil
+	}
+	return l.ExportEmail
+}
+
+func (l *LeadFinderPricingResponsePricing) GetExportPhone() *LeadFinderPricingResponsePriceItem {
+	if l == nil {
+		return nil
+	}
+	return l.ExportPhone
+}
+
+func (l *LeadFinderPricingResponsePricing) GetRevealEmail() *LeadFinderPricingResponsePriceItem {
+	if l == nil {
+		return nil
+	}
+	return l.RevealEmail
+}
+
+func (l *LeadFinderPricingResponsePricing) GetRevealPhone() *LeadFinderPricingResponsePriceItem {
+	if l == nil {
+		return nil
+	}
+	return l.RevealPhone
+}
+
+func (l *LeadFinderPricingResponsePricing) GetUnlockName() *LeadFinderPricingResponsePriceItem {
+	if l == nil {
+		return nil
+	}
+	return l.UnlockName
+}
+
+func (l *LeadFinderPricingResponsePricing) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
+	return l.extraProperties
+}
+
+func (l *LeadFinderPricingResponsePricing) UnmarshalJSON(data []byte) error {
+	type unmarshaler LeadFinderPricingResponsePricing
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*l = LeadFinderPricingResponsePricing(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *LeadFinderPricingResponsePricing) String() string {
+	if l == nil {
+		return "<nil>"
+	}
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
+type LeadFinderPricingResponsePriceItem struct {
+	CreditsPerItem float64 `json:"creditsPerItem" url:"creditsPerItem"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *LeadFinderPricingResponsePriceItem) GetCreditsPerItem() float64 {
+	if l == nil {
+		return 0
+	}
+	return l.CreditsPerItem
+}
+
+func (l *LeadFinderPricingResponsePriceItem) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
+	return l.extraProperties
+}
+
+func (l *LeadFinderPricingResponsePriceItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler LeadFinderPricingResponsePriceItem
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*l = LeadFinderPricingResponsePriceItem(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *LeadFinderPricingResponsePriceItem) String() string {
+	if l == nil {
+		return "<nil>"
+	}
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
+type LeadFinderPricingResponseMeta struct {
+	RequestID *string `json:"requestId,omitempty" url:"requestId,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *LeadFinderPricingResponseMeta) GetRequestID() *string {
+	if l == nil {
+		return nil
+	}
+	return l.RequestID
+}
+
+func (l *LeadFinderPricingResponseMeta) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
+	return l.extraProperties
+}
+
+func (l *LeadFinderPricingResponseMeta) UnmarshalJSON(data []byte) error {
+	type unmarshaler LeadFinderPricingResponseMeta
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*l = LeadFinderPricingResponseMeta(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *LeadFinderPricingResponseMeta) String() string {
+	if l == nil {
+		return "<nil>"
+	}
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
 }

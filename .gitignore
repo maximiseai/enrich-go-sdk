@@ -35,3 +35,9 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Local smoke-test sandbox (uses real API key, not part of SDK)
+/ignore/
+
+# Claude Code local session state
+.claude/
