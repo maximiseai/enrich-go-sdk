@@ -2393,7 +2393,7 @@ func TestSettersLeadFinderSearchFilters(t *testing.T) {
 
 	t.Run("SetAboutUs", func(t *testing.T) {
 		obj := &LeadFinderSearchFilters{}
-		var fernTestValueAboutUs *string
+		var fernTestValueAboutUs *LeadFinderSearchFiltersAboutUs
 		obj.SetAboutUs(fernTestValueAboutUs)
 		assert.Equal(t, fernTestValueAboutUs, obj.AboutUs)
 		assert.NotNil(t, obj.explicitFields)
@@ -4478,7 +4478,7 @@ func TestGettersLeadFinderSearchFilters(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &LeadFinderSearchFilters{}
-		var expected *string
+		var expected *LeadFinderSearchFiltersAboutUs
 		obj.AboutUs = expected
 
 		// Act & Assert
@@ -8856,7 +8856,7 @@ func TestSettersMarkExplicitLeadFinderSearchFilters(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &LeadFinderSearchFilters{}
-		var fernTestValueAboutUs *string
+		var fernTestValueAboutUs *LeadFinderSearchFiltersAboutUs
 
 		// Act
 		obj.SetAboutUs(fernTestValueAboutUs)

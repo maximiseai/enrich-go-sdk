@@ -369,3 +369,42 @@ func (c *Client) SuggestCompanyNames(
 	}
 	return response.Body, nil
 }
+
+// Prefix-based city name autocomplete. Use the optional `Field` parameter to switch between person
+// city (default) and company headquarters city. Free endpoint.
+//
+// **Requires approved Lead Finder access.** Returns 403 if your team has not been approved.
+func (c *Client) SuggestCities(
+	ctx context.Context,
+	request *sdk.SuggestCitiesRequest,
+	opts ...option.RequestOption,
+) (*sdk.LeadFinderSuggestResponse, error) {
+	response, err := c.WithRawResponse.SuggestCities(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Return org-specific credit costs for every lead finder action (export preview rows, export email,
+// export phone, reveal email, reveal phone, unlock name). Falls back to global defaults when no
+// per-org override is configured. Free endpoint.
+//
+// **Requires approved Lead Finder access.** Returns 403 if your team has not been approved.
+func (c *Client) GetPricing(
+	ctx context.Context,
+	opts ...option.RequestOption,
+) (*sdk.LeadFinderPricingResponse, error) {
+	response, err := c.WithRawResponse.GetPricing(
+		ctx,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}

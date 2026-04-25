@@ -197,7 +197,11 @@ func newRequest(
 		return nil, err
 	}
 	req = req.WithContext(ctx)
-	req.Header.Set(contentTypeHeader, reqContentType)
+	// Only set Content-Type when there's an actual body — Fastify rejects
+	// `Content-Type: application/json` with an empty body (FST_ERR_CTP_EMPTY_JSON_BODY).
+	if requestBody != nil {
+		req.Header.Set(contentTypeHeader, reqContentType)
+	}
 	for name, values := range endpointHeaders {
 		req.Header[name] = values
 	}

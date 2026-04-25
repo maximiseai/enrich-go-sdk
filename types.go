@@ -379,12 +379,35 @@ type BatchStatusData struct {
 	BatchID string `json:"batchId" url:"batchId"`
 	// Current status: `queued`, `processing`, `completed`, or `failed`
 	Status string `json:"status" url:"status"`
-	// Total items in the batch
+	// Total items in the batch (legacy spec field — set by SDK from totalLeads/totalEmails when available)
 	TotalItems *int `json:"totalItems,omitempty" url:"totalItems,omitempty"`
-	// Items processed so far
+	// Items processed so far (legacy spec field — set by SDK from processedCount when available)
 	ProcessedItems *int `json:"processedItems,omitempty" url:"processedItems,omitempty"`
 	// Completion percentage (0–100)
 	Progress *float64 `json:"progress,omitempty" url:"progress,omitempty"`
+
+	// ---- Real fields returned by the gateway. Differ between email-finder and email-validation. ----
+
+	// Email-finder batch: total leads queued.
+	TotalLeads *int `json:"totalLeads,omitempty" url:"totalLeads,omitempty"`
+	// Email-validation batch: total emails queued.
+	TotalEmails *int `json:"totalEmails,omitempty" url:"totalEmails,omitempty"`
+	// Items processed so far (gateway field name; both endpoints).
+	ProcessedCount *int `json:"processedCount,omitempty" url:"processedCount,omitempty"`
+	// Email-finder: count of leads where an email was found.
+	FoundCount *int `json:"foundCount,omitempty" url:"foundCount,omitempty"`
+	// Email-finder: count of leads where no email was found.
+	NotFoundCount *int `json:"notFoundCount,omitempty" url:"notFoundCount,omitempty"`
+	// Email-finder: count of leads that errored during processing.
+	ErrorCount *int `json:"errorCount,omitempty" url:"errorCount,omitempty"`
+	// Email-validation: count of valid emails.
+	ValidCount *int `json:"validCount,omitempty" url:"validCount,omitempty"`
+	// Email-validation: count of invalid emails.
+	InvalidCount *int `json:"invalidCount,omitempty" url:"invalidCount,omitempty"`
+	// Email-validation: count of risky/uncertain emails.
+	RiskyCount *int `json:"riskyCount,omitempty" url:"riskyCount,omitempty"`
+	// Submission timestamp (epoch milliseconds).
+	CreatedAt *int64 `json:"createdAt,omitempty" url:"createdAt,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -426,6 +449,76 @@ func (b *BatchStatusData) GetProgress() *float64 {
 		return nil
 	}
 	return b.Progress
+}
+
+func (b *BatchStatusData) GetTotalLeads() *int {
+	if b == nil {
+		return nil
+	}
+	return b.TotalLeads
+}
+
+func (b *BatchStatusData) GetTotalEmails() *int {
+	if b == nil {
+		return nil
+	}
+	return b.TotalEmails
+}
+
+func (b *BatchStatusData) GetProcessedCount() *int {
+	if b == nil {
+		return nil
+	}
+	return b.ProcessedCount
+}
+
+func (b *BatchStatusData) GetFoundCount() *int {
+	if b == nil {
+		return nil
+	}
+	return b.FoundCount
+}
+
+func (b *BatchStatusData) GetNotFoundCount() *int {
+	if b == nil {
+		return nil
+	}
+	return b.NotFoundCount
+}
+
+func (b *BatchStatusData) GetErrorCount() *int {
+	if b == nil {
+		return nil
+	}
+	return b.ErrorCount
+}
+
+func (b *BatchStatusData) GetValidCount() *int {
+	if b == nil {
+		return nil
+	}
+	return b.ValidCount
+}
+
+func (b *BatchStatusData) GetInvalidCount() *int {
+	if b == nil {
+		return nil
+	}
+	return b.InvalidCount
+}
+
+func (b *BatchStatusData) GetRiskyCount() *int {
+	if b == nil {
+		return nil
+	}
+	return b.RiskyCount
+}
+
+func (b *BatchStatusData) GetCreatedAt() *int64 {
+	if b == nil {
+		return nil
+	}
+	return b.CreatedAt
 }
 
 func (b *BatchStatusData) GetExtraProperties() map[string]interface{} {
@@ -484,6 +577,19 @@ func (b *BatchStatusData) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*b = BatchStatusData(value)
+	// Backfill the legacy spec fields from the gateway's actual field names so that
+	// callers using GetTotalItems / GetProcessedItems still work against the live API.
+	if b.TotalItems == nil {
+		switch {
+		case b.TotalLeads != nil:
+			b.TotalItems = b.TotalLeads
+		case b.TotalEmails != nil:
+			b.TotalItems = b.TotalEmails
+		}
+	}
+	if b.ProcessedItems == nil && b.ProcessedCount != nil {
+		b.ProcessedItems = b.ProcessedCount
+	}
 	extraProperties, err := internal.ExtractExtraProperties(data, *b)
 	if err != nil {
 		return err
@@ -583,21 +689,36 @@ func (b *BatchStatusResponse) SetMeta(meta *BatchStatusResponseMeta) {
 }
 
 func (b *BatchStatusResponse) UnmarshalJSON(data []byte) error {
-	type embed BatchStatusResponse
-	var unmarshaler = struct {
-		embed
-		Success bool `json:"success"`
-	}{
-		embed: embed(*b),
+	// The email-finder and email-validation batch-status endpoints are raw-proxied
+	// by the gateway and return a flat top-level JSON ({batchId, status, totalLeads, …})
+	// — no {success, data, meta} envelope. Detect both shapes here so the SDK works
+	// against the actual API surface, not just the (currently wrong) OpenAPI spec.
+	var probe struct {
+		Success *bool                    `json:"success"`
+		Data    json.RawMessage          `json:"data"`
+		Meta    *BatchStatusResponseMeta `json:"meta"`
 	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
+	_ = json.Unmarshal(data, &probe)
+	if probe.Data != nil {
+		// Enveloped: {success, data: {...}, meta?}
+		var bsd BatchStatusData
+		if err := json.Unmarshal(probe.Data, &bsd); err != nil {
+			return err
+		}
+		b.Data = &bsd
+		b.Meta = probe.Meta
+		if probe.Success != nil {
+			b.success = *probe.Success
+		}
+	} else {
+		// Flat: top-level IS the data. Status code 200 implies success.
+		var bsd BatchStatusData
+		if err := json.Unmarshal(data, &bsd); err != nil {
+			return err
+		}
+		b.Data = &bsd
+		b.success = true
 	}
-	*b = BatchStatusResponse(unmarshaler.embed)
-	if unmarshaler.Success != true {
-		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", b, true, unmarshaler.Success)
-	}
-	b.success = unmarshaler.Success
 	extraProperties, err := internal.ExtractExtraProperties(data, *b, "success")
 	if err != nil {
 		return err

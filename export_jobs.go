@@ -171,44 +171,6 @@ func (a *AsyncExportMeta) String() string {
 	return ""
 }
 
-// ── LeadExportJobProgress ────────────────────────────────────────────────────
-
-type LeadExportJobProgress struct {
-	Processed float64 `json:"processed" url:"processed"`
-	Total     float64 `json:"total" url:"total"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (l *LeadExportJobProgress) GetProcessed() float64 { return l.Processed }
-func (l *LeadExportJobProgress) GetTotal() float64     { return l.Total }
-func (l *LeadExportJobProgress) GetExtraProperties() map[string]interface{} {
-	return l.extraProperties
-}
-func (l *LeadExportJobProgress) UnmarshalJSON(data []byte) error {
-	type embed LeadExportJobProgress
-	var body embed
-	if err := json.Unmarshal(data, &body); err != nil {
-		return err
-	}
-	*l = LeadExportJobProgress(body)
-	extraProperties, err := internal.ExtractExtraProperties(data, *l)
-	if err != nil {
-		return err
-	}
-	l.extraProperties = extraProperties
-	l.rawJSON = data
-	return nil
-}
-func (l *LeadExportJobProgress) MarshalJSON() ([]byte, error) { return json.Marshal(*l) }
-func (l *LeadExportJobProgress) String() string {
-	if value, err := internal.StringifyJSON(l); err == nil {
-		return value
-	}
-	return ""
-}
-
 // ── LeadExportJobStatusResponse ──────────────────────────────────────────────
 
 var (
@@ -285,14 +247,24 @@ func (l *LeadExportJobStatusResponse) String() string {
 
 // LeadExportJobStatusData holds the job status data. Status is one of: pending, processing, completed, failed.
 type LeadExportJobStatusData struct {
-	JobID       string                 `json:"jobId" url:"jobId"`
-	Status      string                 `json:"status" url:"status"`
-	Progress    *LeadExportJobProgress `json:"progress,omitempty" url:"progress,omitempty"`
-	Results     *LeadExportJobResults  `json:"results,omitempty" url:"results,omitempty"`
-	Error       *string                `json:"error,omitempty" url:"error,omitempty"`
-	CreditsRefunded *float64           `json:"creditsRefunded,omitempty" url:"creditsRefunded,omitempty"`
-	CreatedAt   string                 `json:"createdAt" url:"createdAt"`
-	CompletedAt *string                `json:"completedAt,omitempty" url:"completedAt,omitempty"`
+	JobID           string   `json:"jobId" url:"jobId"`
+	Name            *string  `json:"name,omitempty" url:"name,omitempty"`
+	Status          string   `json:"status" url:"status"`
+	// Sub-phase within the status (e.g. "uploading", "writing"). Free-form, may be absent.
+	Phase           *string  `json:"phase,omitempty" url:"phase,omitempty"`
+	// Completion percentage (0–100).
+	Progress        *float64 `json:"progress,omitempty" url:"progress,omitempty"`
+	// Total rows the export will produce.
+	TotalRows       *int     `json:"totalRows,omitempty" url:"totalRows,omitempty"`
+	// Rows written so far.
+	ProcessedRows   *int     `json:"processedRows,omitempty" url:"processedRows,omitempty"`
+	CreditsUsed     *float64 `json:"creditsUsed,omitempty" url:"creditsUsed,omitempty"`
+	CreditsRefunded *float64 `json:"creditsRefunded,omitempty" url:"creditsRefunded,omitempty"`
+	Error           *string  `json:"error,omitempty" url:"error,omitempty"`
+	// Pre-signed download URL (only set when status == "completed").
+	DownloadURL     *string  `json:"downloadUrl,omitempty" url:"downloadUrl,omitempty"`
+	CreatedAt       string   `json:"createdAt" url:"createdAt"`
+	CompletedAt     *string  `json:"completedAt,omitempty" url:"completedAt,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -326,50 +298,19 @@ func (l *LeadExportJobStatusData) String() string {
 	return ""
 }
 
-type LeadExportJobResults struct {
-	TotalExported   float64 `json:"totalExported" url:"totalExported"`
-	CreditsUsed     float64 `json:"creditsUsed" url:"creditsUsed"`
-	CreditsRefunded float64 `json:"creditsRefunded" url:"creditsRefunded"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (l *LeadExportJobResults) GetExtraProperties() map[string]interface{} {
-	return l.extraProperties
-}
-func (l *LeadExportJobResults) UnmarshalJSON(data []byte) error {
-	type embed LeadExportJobResults
-	var body embed
-	if err := json.Unmarshal(data, &body); err != nil {
-		return err
-	}
-	*l = LeadExportJobResults(body)
-	extraProperties, err := internal.ExtractExtraProperties(data, *l)
-	if err != nil {
-		return err
-	}
-	l.extraProperties = extraProperties
-	l.rawJSON = data
-	return nil
-}
-func (l *LeadExportJobResults) MarshalJSON() ([]byte, error) { return json.Marshal(*l) }
-func (l *LeadExportJobResults) String() string {
-	if value, err := internal.StringifyJSON(l); err == nil {
-		return value
-	}
-	return ""
-}
-
 // ── LeadExportJobSummary ─────────────────────────────────────────────────────
 
 type LeadExportJobSummary struct {
 	JobID           string   `json:"jobId" url:"jobId"`
+	Name            *string  `json:"name,omitempty" url:"name,omitempty"`
 	Status          string   `json:"status" url:"status"`
-	Total           float64  `json:"total" url:"total"`
-	Processed       float64  `json:"processed" url:"processed"`
-	CreditsUsed     float64  `json:"creditsUsed" url:"creditsUsed"`
-	CreditsRefunded float64  `json:"creditsRefunded" url:"creditsRefunded"`
+	Phase           *string  `json:"phase,omitempty" url:"phase,omitempty"`
+	Progress        *float64 `json:"progress,omitempty" url:"progress,omitempty"`
+	TotalRows       *int     `json:"totalRows,omitempty" url:"totalRows,omitempty"`
+	ProcessedRows   *int     `json:"processedRows,omitempty" url:"processedRows,omitempty"`
+	CreditsUsed     *float64 `json:"creditsUsed,omitempty" url:"creditsUsed,omitempty"`
+	CreditsRefunded *float64 `json:"creditsRefunded,omitempty" url:"creditsRefunded,omitempty"`
+	Error           *string  `json:"error,omitempty" url:"error,omitempty"`
 	// ISO 8601 timestamp
 	CreatedAt   string  `json:"createdAt" url:"createdAt"`
 	CompletedAt *string `json:"completedAt,omitempty" url:"completedAt,omitempty"`
@@ -526,4 +467,6 @@ type ListExportJobsRequest struct {
 	Limit *int `json:"-" url:"limit,omitempty"`
 	// Filter by job status
 	Status *string `json:"-" url:"status,omitempty"`
+	// Filter by job name (case-insensitive substring match)
+	Search *string `json:"-" url:"search,omitempty"`
 }
